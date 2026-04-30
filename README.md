@@ -1,19 +1,54 @@
-Hi ![](https://user-images.githubusercontent.com/18350557/176309783-0785949b-9127-417c-8b55-ab5a4333674e.gif) My name is Anley Belay
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&pause=1000&color=00D4FF&center=true&vCenter=true&width=435&lines=Hi+there%2C+I'm+Anley+Belay;I+build+intelligent+systems;Teaching+AI+to+speak+Sidama;Engineering+the+Future" alt="Typing SVG" />
+</div>
 
-Fullstack Developer | Aspiring AI Engineer
+# ◈ Anley Belay
+**Fullstack AI Engineer | NLP Researcher**
 
-I specialize in building end-to-end intelligent applications, from responsive web interfaces to Machine Learning models. I am particularly passionate about NLP and low-resource language technologies.
 
-* 🌍  I'm based in Ethiopia
-* 🖥️  See my portfolio at [MyPortfolio](http://https://anleybelay.vercel.app/)
-* ✉️  You can contact me at [anleybelay72@gmail.com](mailto:anleybelay72@gmail.com)
-* 🚀  I'm currently working on [Myapp](http://https://anleybelay.vercel.app/)
-* 🧠  I'm currently learning Advanced Machine Learning and Large Language Models.
-* 👥  I'm looking to collaborate on Open-source AI projects and Fullstack Web Apps.
-* 💬  Ask me about On a mission to bridge the digital gap for low-resource languages. If the AI doesn't speak Sidaamu Afoo or Amharic yet, I'm probably the one teaching it.
 
+### § The Mission
+> *Bridging the digital divide for low-resource languages. If the AI doesn't speak **Sidaamu Afoo** or **Amharic** yet, I am the one teaching it.*
+
+
+
+### ⧉ Innovation Stack
+* **Intelligence** &nbsp; `Python` • `FastAPI` • `Hugging Face` • `LLMs` • `PyTorch`
+* **Interface** &nbsp;&nbsp;&nbsp; `Vue.js` • `Vite` • `Tailwind CSS` • `JavaScript`
+* **Foundation** &nbsp;&nbsp; `Supabase` • `Firebase` • `Linux` • `Docker`
+* **Capability** &nbsp;&nbsp; `Termux (Mobile-First Development Specialist)`
+
+
+
+### ⌬ Selected Works
+* ⚲ **[Sidama AI Translator](https://anleybelay.vercel.app/)** — Neural Machine Translation web app for the Sidama community.
+* ⚲ **[ML Weather Predictor](https://github.com/Anley-dev)** — A machine learning engine for localized weather forecasting.
+* ⚲ **[100 Days of Code](https://github.com/Anley-dev)** — Systematic engineering curriculum focused on job-readiness in AI.
+
+
+
+### ⊞ System Metrics
 <p align="left">
-<a href="https://git-scm.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/git-colored.svg" alt="Git" title="Git" width="36" height="36" /></a><a href="https://www.python.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/python-colored.svg" alt="Python" title="Python" width="36" height="36" /></a><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/javascript-colored.svg" alt="JavaScript" title="JavaScript" width="36" height="36" /></a><a href="https://www.oracle.com/java/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/java-colored.svg" alt="Java" title="Java" width="36" height="36" /></a><a href="https://developer.mozilla.org/en-US/docs/Glossary/HTML5" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/html5-colored.svg" alt="HTML5" title="HTML5" width="36" height="36" /></a><a href="https://www.w3.org/TR/CSS/#css" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/css3-colored.svg" alt="CSS3" title="CSS3" width="36" height="36" /></a><a href="https://vuejs.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/vuejs-colored.svg" alt="Vue" title="Vue" width="36" height="36" /></a><a href="https://fastapi.tiangolo.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/fastapi-colored.svg" alt="Fast API" title="Fast API" width="36" height="36" /></a><a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/mongodb-colored.svg" alt="MongoDB" title="MongoDB" width="36" height="36" /></a><a href="https://firebase.google.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/firebase-colored.svg" alt="Firebase" title="Firebase" width="36" height="36" /></a><a href="https://flask.palletsprojects.com/en/3.0.x/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/flask-colored-dark.svg" alt="Flask" title="Flask" width="36" height="36" /></a><a href="https://nodejs.org/en/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/nodejs-colored.svg" alt="NodeJS" title="NodeJS" width="36" height="36" /></a><a href="https://www.postgresql.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/postgresql-colored.svg" alt="PostgreSQL" title="PostgreSQL" width="36" height="36" /></a><a href="https://supabase.io/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/supabase-colored.svg" alt="Supabase" title="Supabase" width="36" height="36" /></a><a href="https://www.adobe.com/uk/products/photoshop.html" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/photoshop-colored-dark.svg" alt="Photoshop" title="Photoshop" width="36" height="36" /></a><a href="https://www.figma.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/figma-colored.svg" alt="Figma" title="Figma" width="36" height="36" /></a><a href="https://cloud.google.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/googlecloud-colored.svg" alt="Google Cloud" title="Google Cloud" width="36" height="36" /></a><a href="https://www.raspberrypi.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/raspberrypi-colored.svg" alt="Raspberry Pi" title="Raspberry Pi" width="36" height="36" /></a><a href="https://store.arduino.cc/?gclid=Cj0KCQjw2eilBhCCARIsAG0Pf8uueBifykWcsSS4LPESeGQfxGVKJYnzV7bz471XfknQJy_1VINVWM8aAkLtEALw_wcB" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/arduino-colored.svg" alt="Arduino" title="Arduino" width="36" height="36" /></a><a href="https://www.linux.org" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/linux-colored.svg" alt="Linux" title="Linux" width="36" height="36" /></a><a href="https://ubuntu.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/ubuntu-colored.svg" alt="Ubuntu" title="Ubuntu" width="36" height="36" /></a><a href="https://www.tensorflow.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/tensorflow-colored.svg" alt="TensorFlow" title="TensorFlow" width="36" height="36" /></a><a href="https://huggingface.co/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/huggingface-colored-dark.svg" alt="Hugging Face" title="Hugging Face" width="36" height="36" /></a><a href="https://www.docker.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/docker-colored.svg" alt="Docker" title="Docker" width="36" height="36" /></a><a href="https://pytorch.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/pytorch-colored.svg" alt="PyTorch" title="PyTorch" width="36" height="36" /></a><a href="https://www.djangoproject.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/django-colored-dark.svg" alt="Django" title="Django" width="36" height="36" /></a><a href="https://www.blender.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/blender-colored.svg" alt="Blender" title="Blender" width="36" height="36" /></a><a href="https://flutter.dev/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/flutter-colored.svg" alt="Flutter" title="Flutter" width="36" height="36" /></a>
+  <img src="https://github-readme-stats.vercel.app/api?username=Anley-dev&show_icons=true&theme=transparent&title_color=00d4ff&text_color=ffffff&icon_color=00d4ff&hide_border=true" height="165" />
+</p>
+
+
+
+### ⛓ Digital Ecosystem
+[**Portfolio**](https://anleybelay.vercel.app/) &nbsp;•&nbsp; [**LinkedIn**](https://www.linkedin.com/in/anleybelay) &nbsp;•&nbsp; [**TechWise Hub**](https://t.me/TechWisehub) &nbsp;•&nbsp; [**Facebook**](https://www.facebook.com/61579076520708)
+
+
+
+### ⚖ Support
+<a href="https://www.buymeacoffee.com/anleybelay">
+  <img src="https://img.shields.io/badge/Support_Development-000000?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white" />
+</a>
+
+<br />
+
+<p align="center">
+<sub>*I'm secretly Spiderman... but let's keep that between us.* 🕸️</sub>
+</p>
 </p>
 ### Badges
 
