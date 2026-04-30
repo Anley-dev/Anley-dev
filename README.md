@@ -42,13 +42,19 @@
 
 
 
+
+
 ### ⚖ Support
-<a href="https://www.buymeacoffee.com/anleybelay">
-  <img src="https://img.shields.io/badge/Support_Development-000000?style=for-the-badge&logo=buy-me-a-coffee&logoColor=white" />
-</a>
+> *Investing in low-resource language AI ensures that no culture is left behind in the digital age.*
+
+<div align="left">
+  <a href="https://www.buymeacoffee.com/anleybelay" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 145px !important;" >
+  </a>
+</div>
 
 <br />
 
 <p align="center">
-<sub>*The world is built on data, but the soul is built on language. I’m just here to make sure the AI knows the difference.* ⌬</sub>
+<sub>*Building the bridge where code meets culture. 🇪🇹 If the data isn't there, I'll create it.* ◈</sub>
 </p>
