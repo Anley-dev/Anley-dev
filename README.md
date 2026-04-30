@@ -44,14 +44,19 @@
 
 
 
-### ⚖ Support
-> *Investing in low-resource language AI ensures that no culture is left behind in the digital age.*
+---
 
-<div align="left">
-  <a href="https://www.buymeacoffee.com/anleybelay" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 145px !important;" >
-  </a>
-</div>
+### ⚖ Support
+> *Investing in low-resource language AI ensures that no culture is left behind in the digital age. Every contribution fuels research and data costs.*
+
+⌬ **Telebirr**
+`0943355986`
+
+◈ **Commercial Bank of Ethiopia (CBE)**
+`1000429802467` — Anley Belay
+
+⟁ **Binance ID**
+`919552809`
 
 <br />
 
