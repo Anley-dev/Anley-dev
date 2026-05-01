@@ -31,10 +31,9 @@
 
 ### ⊞ System Metrics
 <p align="left">
-  <img src="https://github-readme-stats.vercel.app/api?username=Anley-dev&show_icons=true&theme=transparent&title_color=00d4ff&text_color=ffffff&icon_color=00d4ff&hide_border=true&count_private=true&cache_bypass=1" height="165" />
+  <img src="https://github-readme-stats.vercel.app/api?username=Anley-dev&show_icons=true&theme=transparent&title_color=00d4ff&text_color=ffffff&icon_color=00d4ff&hide_border=true&count_private=false&cache_bypass=1" height="165" />
   <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Anley-dev&layout=compact&theme=transparent&title_color=00d4ff&text_color=ffffff&hide_border=true&cache_bypass=1" height="165" />
 </p>
-
 
 ### ⛓ Digital Ecosystem
 [**Portfolio**](https://anleybelay.vercel.app/) &nbsp;•&nbsp; [**LinkedIn**](https://www.linkedin.com/in/anleybelay) &nbsp;•&nbsp; [**TechWise Hub**](https://t.me/TechWisehub) &nbsp;•&nbsp; [**Facebook**](https://www.facebook.com/61579076520708)
