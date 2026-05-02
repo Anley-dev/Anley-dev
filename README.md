@@ -1,7 +1,10 @@
-<div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&lines=Fullstack+AI+Engineer;NLP+Researcher;Low-Resource+Language+Specialist;Building+the+Future+of+Sidaamu+Afoo" alt="Typing SVG" />
-</div>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Anley-dev/Anley-dev/main/banner.png" width="100%" alt="Anley Belay Banner">
+</p>
 
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&lines=Fullstack+AI+Engineer;NLP+Researcher;Sidaamu+Afoo+AI+Specialist;Building+the+Future+of+NLP" alt="Typing SVG" />
+</div>
 # ◈ Anley Belay
 **Fullstack AI Engineer | NLP Researcher**
 
