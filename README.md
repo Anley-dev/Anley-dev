@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Banner.png" width="100%" alt="Anley Belay Banner">
+  <img src="banner.png?v=1" width="100%" alt="Anley Belay Banner">
 </p>
 
 <div align="center">
