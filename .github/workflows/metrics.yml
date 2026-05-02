@@ -1,8 +1,13 @@
 name: Metrics
 on:
-  schedule: [{cron: "0 0 * * *"}] # Runs every day at midnight
-  workflow_dispatch: # Allows you to run it manually
-push: {branches: ["master", "main"]}
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
 jobs:
   github-metrics:
     runs-on: ubuntu-latest
