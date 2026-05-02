@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&height=50&lines=Hi+there!+I'm+Anley+Belay;I+build+intelligent+systems;Teaching+AI+Sidaamu+Afoo;Engineering+the+Future" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&lines=Fullstack+AI+Engineer;NLP+Researcher;Low-Resource+Language+Specialist;Building+the+Future+of+Sidaamu+Afoo" alt="Typing SVG" />
 </div>
 
 # ◈ Anley Belay
@@ -18,28 +18,19 @@
 * **Foundation** &nbsp;&nbsp; `Supabase` • `Firebase` • `Linux` • `Docker`
 * **Capability** &nbsp;&nbsp; `Termux (Mobile-First Development Specialist)`
 
----
-
 ### ⌬ Selected Works
 * ⚲ **[Sidama AI Translator](https://anleybelay.vercel.app/)** — Neural Machine Translation web app for the Sidama community.
 * ⚲ **[ML Weather Predictor](https://github.com/Anley-dev)** — A machine learning engine for localized weather forecasting.
 * ⚲ **[100 Days of Code](https://github.com/Anley-dev)** — Systematic engineering curriculum focused on job-readiness in AI.
 
----
-
----
 
 ### ⊞ System Metrics
 ![Metrics](https://raw.githubusercontent.com/Anley-dev/Anley-dev/main/github-metrics.svg)
 
+
 ### ⛓ Digital Ecosystem
 [**Portfolio**](https://anleybelay.vercel.app/) &nbsp;•&nbsp; [**LinkedIn**](https://www.linkedin.com/in/anleybelay) &nbsp;•&nbsp; [**TechWise Hub**](https://t.me/TechWisehub) &nbsp;•&nbsp; [**Facebook**](https://www.facebook.com/61579076520708)
 
-
-
-
-
----
 
 ### ⚖ Support
 > *Investing in low-resource language AI ensures that no culture is left behind in the digital age. Every contribution fuels research and data costs.*
