@@ -30,7 +30,7 @@
 ---
 
 ### ⊞ System Metrics
-![Metrics](/github-metrics.svg)
+![Metrics](https://raw.githubusercontent.com/Anley-dev/Anley-dev/main/github-metrics.svg)
 
 ### ⛓ Digital Ecosystem
 [**Portfolio**](https://anleybelay.vercel.app/) &nbsp;•&nbsp; [**LinkedIn**](https://www.linkedin.com/in/anleybelay) &nbsp;•&nbsp; [**TechWise Hub**](https://t.me/TechWisehub) &nbsp;•&nbsp; [**Facebook**](https://www.facebook.com/61579076520708)
