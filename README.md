@@ -1,11 +1,10 @@
 <p align="center">
-  <img src="banner.png" width="100%" alt="Anley Belay Banner">
+  <img src="Banner.png" width="100%" alt="Anley Belay Banner">
 </p>
 
 <div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&lines=Fullstack+AI+Engineer;NLP+Researcher;Low-Resource+Language+Specialist;Building+the+Future+of+Sidaamu+Afoo" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=00D4FF&center=true&vCenter=true&width=500&lines=Fullstack+AI+Engineer;NLP+Researcher;Sidaamu+Afoo+AI+Specialist" alt="Typing SVG" />
 </div>
-
 
 # ◈ Anley Belay
 **Fullstack AI Engineer | NLP Researcher**
