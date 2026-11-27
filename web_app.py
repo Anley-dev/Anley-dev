@@ -1,48 +1,75 @@
 import os
 import re
+import csv
 import json
 import sqlite3
 import math
 import hashlib
 import secrets
 import time
+import logging
+import threading
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from contextlib import asynccontextmanager
 from typing import Optional, List
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 import httpx
 from fastapi import FastAPI, HTTPException, Header, Query, Depends, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "hawassa_places.db")
-CSV_PATH = os.path.join(os.path.dirname(__file__), "places.csv")
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("hawassa-dispatch")
+
+DB_PATH = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "hawassa_places.db"))
+CSV_PATH = os.getenv("CSV_PATH", os.path.join(os.path.dirname(__file__), "places.csv"))
 VALHALLA_URL = os.getenv("VALHALLA_URL", "http://localhost:8002")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "deepseek-r1:1.5b")
 
 http_client: Optional[httpx.AsyncClient] = None
 
 # ==========================================
-# In-Memory Rate Limiter Middleware
+# In-Memory Rate Limiter & Security Settings
 # ==========================================
-RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX = 120    # requests per window
-request_counters = defaultdict(list)
+RATE_LIMIT_LOCK = threading.Lock()
+RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_MAX", "120"))
+request_counters: dict[str, list[float]] = defaultdict(list)
+_last_cleanup = time.time()
 
 # ==========================================
 # Database Initialization (Auth & Call Logs)
 # ==========================================
+PBKDF2_ITERATIONS = 600000
+
 def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
     if not salt:
         salt = secrets.token_hex(16)
-    hashed = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
-    return hashed, salt
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), PBKDF2_ITERATIONS)
+    return f"pbkdf2${dk.hex()}", salt
 
 def verify_password(password: str, password_hash: str, salt: str) -> bool:
-    test_hash, _ = hash_password(password, salt)
-    return test_hash == password_hash
+    if password_hash.startswith("pbkdf2$"):
+        expected_hex = password_hash.split("$", 1)[1]
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), PBKDF2_ITERATIONS)
+        return secrets.compare_digest(dk.hex(), expected_hex)
+    else:
+        # Legacy SHA256 backwards compatibility
+        legacy_hash = hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
+        return secrets.compare_digest(legacy_hash, password_hash)
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
@@ -101,17 +128,26 @@ def init_db():
 
     cursor.execute("SELECT COUNT(*) FROM agents")
     if cursor.fetchone()[0] == 0:
-        h1, s1 = hash_password("admin123")
-        cursor.execute("""
-            INSERT INTO agents (username, password_hash, salt, full_name, role, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, ("admin", h1, s1, "Supervisor Admin", "supervisor", datetime.utcnow().isoformat()))
+        admin_user = os.getenv("ADMIN_USERNAME", "admin")
+        admin_pass = os.getenv("ADMIN_PASSWORD", "admin123")
+        agent_user = os.getenv("AGENT_USERNAME", "agent1")
+        agent_pass = os.getenv("AGENT_PASSWORD", "agent123")
 
-        h2, s2 = hash_password("agent123")
+        if admin_pass == "admin123":
+            logger.warning("SECURITY WARNING: Default admin password in use. Set ADMIN_PASSWORD in production!")
+
+        h1, s1 = hash_password(admin_pass)
+        now_iso = datetime.now(timezone.utc).isoformat()
         cursor.execute("""
             INSERT INTO agents (username, password_hash, salt, full_name, role, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, ("agent1", h2, s2, "Hawassa Agent 1", "agent", datetime.utcnow().isoformat()))
+        """, (admin_user, h1, s1, os.getenv("ADMIN_FULL_NAME", "Supervisor Admin"), "supervisor", now_iso))
+
+        h2, s2 = hash_password(agent_pass)
+        cursor.execute("""
+            INSERT INTO agents (username, password_hash, salt, full_name, role, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (agent_user, h2, s2, os.getenv("AGENT_FULL_NAME", "Hawassa Agent 1"), "agent", now_iso))
 
     conn.commit()
     conn.close()
@@ -129,23 +165,55 @@ async def lifespan(app: FastAPI):
     if http_client:
         await http_client.aclose()
 
-app = FastAPI(title="Hawassa Call Center Navigation Web", lifespan=lifespan)
+app = FastAPI(
+    title="Hawassa Call Center Navigation Web",
+    description="Production-grade offline-first emergency and taxi dispatch routing API for Hawassa, Ethiopia",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# CORS Middleware
+cors_origins_env = os.getenv("CORS_ORIGINS", "*")
+origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins if origins else ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Security Headers Middleware
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 # Rate limiting middleware
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    # Only rate-limit API calls
-    if request.url.path.startswith("/api/"):
+    global _last_cleanup
+    # Only rate-limit API calls (skip health checks)
+    if request.url.path.startswith("/api/") and request.url.path != "/api/health":
         client_ip = request.client.host if request.client else "127.0.0.1"
         now = time.time()
-        timestamps = request_counters[client_ip]
-        # Keep only timestamps within window
-        request_counters[client_ip] = [t for t in timestamps if now - t < RATE_LIMIT_WINDOW]
+        with RATE_LIMIT_LOCK:
+            # Purge stale IP trackers periodically
+            if now - _last_cleanup > 300:
+                _last_cleanup = now
+                expired_ips = [ip for ip, ts in request_counters.items() if not ts or now - ts[-1] > RATE_LIMIT_WINDOW]
+                for ip in expired_ips:
+                    del request_counters[ip]
 
-        if len(request_counters[client_ip]) >= RATE_LIMIT_MAX:
-            return JSONResponse(status_code=429, content={"detail": "Too many requests. Please slow down."})
-
-        request_counters[client_ip].append(now)
+            timestamps = [t for t in request_counters[client_ip] if now - t < RATE_LIMIT_WINDOW]
+            if len(timestamps) >= RATE_LIMIT_MAX:
+                return JSONResponse(status_code=429, content={"detail": "Too many requests. Please slow down."})
+            timestamps.append(now)
+            request_counters[client_ip] = timestamps
 
     response = await call_next(request)
     return response
@@ -174,7 +242,9 @@ def get_current_agent(authorization: Optional[str] = Header(None)) -> Optional[d
         return None
 
     expires_at = datetime.fromisoformat(row[4])
-    if datetime.utcnow() > expires_at:
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > expires_at:
         return None
 
     return {
@@ -184,6 +254,11 @@ def get_current_agent(authorization: Optional[str] = Header(None)) -> Optional[d
         "role": row[3],
         "token": token
     }
+
+def require_agent(agent: Optional[dict] = Depends(get_current_agent)) -> dict:
+    if not agent:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return agent
 
 # ==========================================
 # Pydantic Schemas
@@ -395,9 +470,14 @@ async def api_login(req: LoginRequest):
         conn.close()
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    token = secrets.token_hex(24)
-    now = datetime.utcnow()
+    token = secrets.token_hex(32)
+    now = datetime.now(timezone.utc)
     expires_at = now + timedelta(days=7)
+
+    # Seamlessly upgrade legacy SHA-256 hashes to PBKDF2
+    if not agent[2].startswith("pbkdf2$"):
+        new_hash, new_salt = hash_password(req.password)
+        cursor.execute("UPDATE agents SET password_hash = ?, salt = ? WHERE id = ?", (new_hash, new_salt, agent[0]))
 
     cursor.execute("""
         INSERT INTO agent_sessions (token, agent_id, username, full_name, role, created_at, expires_at)
@@ -436,7 +516,7 @@ async def api_me(agent: Optional[dict] = Depends(get_current_agent)):
 @app.post("/api/calls/log")
 async def api_log_call(req: CallLogRequest, agent: Optional[dict] = Depends(get_current_agent)):
     agent_name = agent["username"] if agent else "anonymous_agent"
-    timestamp = datetime.utcnow().isoformat()
+    timestamp = datetime.now(timezone.utc).isoformat()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -516,12 +596,16 @@ async def api_call_stats():
 # ==========================================
 # Navigation & POI Endpoints
 # ==========================================
+@app.get("/api/health")
+async def api_health():
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 @app.get("/api/places")
 async def api_places(category: Optional[str] = None):
     return {"places": get_db_places(category=category)}
 
 @app.post("/api/places")
-async def api_create_place(req: PlaceCreateRequest):
+async def api_create_place(req: PlaceCreateRequest, current_agent: dict = Depends(require_agent)):
     name = req.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Place name cannot be empty")
