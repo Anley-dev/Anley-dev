@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hawassa Navigation & Taxi Dispatch System</title>
+  <link rel="stylesheet" href="/static/lib/maplibre-gl.css" />
+  <script src="/static/lib/maplibre-gl.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --card-bg: #334155;
+      --border: #475569;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Left Control Sidebar */
+    .sidebar {
+      width: 450px;
+      min-width: 380px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    }
+
+    .header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .agent-pill {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
+    .agent-pill:hover { background: #475569; }
+
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      font-size: 0.78rem;
+    }
+
+    .status-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+    .dot.offline { background: var(--accent-amber); }
+
+    .content-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .input-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .label-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--card-bg);
+      color: var(--text-muted);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border 0.15s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
+
+    .row-inputs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      background: #475569;
+      border: none;
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-small:hover { background: #64748b; }
+    .btn-small.active { background: var(--accent-green); color: #000; font-weight: 700; }
+
+    .mode-selector {
+      display: flex;
+      gap: 6px;
+      background: var(--card-bg);
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .mode-tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-action {
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #334155;
+      box-shadow: none;
+    }
+    .btn-secondary:hover { background: #475569; }
+
+    /* Results card */
+    .result-box {
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result-box.visible { display: flex; }
+
+    .result-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--accent-amber);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .agent-script {
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 3px solid var(--accent-green);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 0.84rem;
+      line-height: 1.4;
+      color: #e2e8f0;
+    }
+
+    .stat-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: rgba(255,255,255,0.07);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+    .stat-pill strong { color: #38bdf8; }
+
+    .maneuvers-list {
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-right: 4px;
+    }
+
+    .maneuver-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      color: #cbd5e1;
+    }
+
+    /* History table */
+    .history-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Map container */
+    #map {
+      flex: 1;
+      height: 100vh;
+      background: #0f172a;
+    }
+
+    /* MapLibre overrides */
+    .maplibregl-popup-content {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .maplibregl-popup-tip { border-top-color: #1e293b; border-bottom-color: #1e293b; }
+    .maplibregl-popup-close-button { color: #94a3b8; font-size: 16px; padding: 4px 8px; }
+    .maplibregl-popup-close-button:hover { color: #fff; background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .maplibregl-ctrl-attrib { font-size: 10px !important; }
+    .maplibregl-ctrl button { background-color: #1e293b !important; border-color: #475569 !important; }
+    .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.8); }
+
+    /* Map overlays */
+    .map-helper {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 520px;
+    }
+
+    .poi-filter-bar {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .poi-chip {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      background: #334155;
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .poi-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: #60a5fa;
+      font-weight: 600;
+    }
+
+    .poi-tooltip {
+      background: rgba(15, 23, 42, 0.92) !important;
+      border: 1px solid #475569 !important;
+      color: #f8fafc !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      border-radius: 4px !important;
+      padding: 2px 6px !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important;
+    }
+
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 6px;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-icon { width: 12px; height: 12px; border-radius: 50%; }
+    .legend-caller { background: #10b981; }
+    .legend-dest { background: #ef4444; }
+    .legend-taxi { background: #3b82f6; }
+    .legend-poi { background: #ea580c; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 360px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+  
+    /* Toast Notification System */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      min-width: 280px;
+      max-width: 420px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .toast.success { background: rgba(16, 185, 129, 0.95); border-color: #34d399; color: #022c22; font-weight: 600; }
+    .toast.error { background: rgba(239, 68, 68, 0.95); border-color: #f87171; }
+    .toast.warning { background: rgba(245, 158, 11, 0.95); border-color: #fbbf24; color: #451a03; font-weight: 600; }
+    .toast.info { background: rgba(30, 41, 59, 0.95); border-color: #60a5fa; color: #f8fafc; }
+    @keyframes slideInRight {
+      from { transform: translateX(110%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Terrain & Mountain Advisory Banner */
+    .terrain-advisory {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%);
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: fadeIn 0.3s ease;
+    }
+    .terrain-advisory-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .terrain-advisory-desc {
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: #fef3c7;
+    }
+
+    /* Dynamic Live Tariff & Fare Estimator */
+    .fare-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fare-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fare-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .fare-pill {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .fare-mode { font-size: 0.74rem; color: var(--text-muted); }
+    .fare-val { font-size: 0.95rem; font-weight: 700; color: #38bdf8; }
+
+    /* Pulsing Station Animation on Map */
+    @keyframes stationPulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    }
+    .station-marker-glow {
+      animation: stationPulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    .kbd-shortcut {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: monospace;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+  
+    /* Sleek Vector SVG Icons System */
+    .ui-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      vertical-align: middle;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .ui-icon-lg {
+      width: 18px;
+      height: 18px;
+    }
+    .ui-icon-xl {
+      width: 22px;
+      height: 22px;
+    }
+    .icon-fill {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    /* Clean Uncluttered Taxi Marker */
+    .taxi-station-pin {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .taxi-station-pin:hover {
+      transform: scale(1.25);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+      z-index: 1000;
+    }
+    .taxi-station-pin.highlighted {
+      transform: scale(1.35);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4), 0 6px 16px rgba(0,0,0,0.6);
+      border-color: #fef08a;
+      z-index: 1000;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="header">
+      <div class="header-top">
+        <div class="header-title" style="display:flex;align-items:center;gap:8px;">
+          <svg class="ui-icon ui-icon-lg" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2" fill="currentColor"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2" fill="currentColor"/></svg>
+          <span>Hawassa Dispatch</span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button class="btn-small" style="background:#334155; padding: 4px 8px; font-size: 0.72rem;" onclick="toggleShortcutsModal(true)" title="Keyboard Shortcuts" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"/></svg> Shortcuts</button>
+          <button class="btn-small" style="background: #10b981; color: #fff; font-weight: 600; padding: 4px 8px; font-size: 0.72rem;" onclick="toggleAddPlaceModal(true)" style="display:inline-flex;align-items:center;gap:4px;background:#10b981;color:#fff;font-weight:600;padding:4px 8px;font-size:0.72rem;"><svg class="ui-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Station</button>
+          <div class="agent-pill" id="agent-btn" onclick="toggleAuthModal()">
+            <span id="agent-status-dot" class="dot offline"></span>
+            <span id="agent-label">Agent Login</span>
+          </div>
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-tag"><span class="dot" id="db-dot"></span> <span id="db-status">Places DB</span></span>
+        <span class="status-tag"><span class="dot" id="valhalla-dot"></span> <span id="valhalla-status">Routing Engine</span></span>
+        <span class="status-tag"><span class="dot" id="map-dot"></span> <span id="map-status">Offline Map</span></span>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+      <!-- Mode selection -->
+      <div class="mode-selector">
+        <button class="mode-tab active" id="tab-nearest" onclick="setAppMode('nearest')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Nearest</button>
+        <button class="mode-tab" id="tab-route" onclick="setAppMode('route')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Route</button>
+        <button class="mode-tab" id="tab-ai" onclick="setAppMode('ai')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> AI Assistant</button>
+        <button class="mode-tab" id="tab-history" onclick="setAppMode('history')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Calls (<span id="total-calls-badge">0</span>)</button>
+      </div>
+
+      <!-- AI Container -->
+      <div id="ai-container" style="display: none; flex-direction: column; gap: 10px;">
+        <div class="input-label">
+          <span>Caller Inquiry (English or አማርኛ)</span>
+          <span class="label-badge" style="background: var(--accent-purple); color: #fff;">Offline Ollama</span>
+        </div>
+        <textarea id="ai-input" rows="3" placeholder="Type caller request, e.g.:
+• 'I am at Referral Hospital and want to go to Piazza'
+• 'ከመናኸሪያ ወደ ሐዋሳ ዩኒቨርሲቲ መሄድ እፈልጋለሁ'
+• 'Near Lake fish market, where is the nearest taxi?'" style="width:100%; padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:6px; color:#fff; font-size:0.86rem; outline:none; resize:none;"></textarea>
+        <button class="btn-action" id="btn-ask-ai" style="background: var(--accent-purple);" onclick="askAIAssistant()">
+          <span style="display:inline-flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Parse with AI</span>
+        </button>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="input-group" id="search-group">
+        <div class="input-label">
+          <span>Search Hawassa Places</span>
+          <span class="label-badge">English / አማርኛ</span>
+        </div>
+        <input type="text" id="quick-search" placeholder="Search station, landmark, e.g. Menharya, ሪፈራል..." oninput="onQuickSearch(this.value)" />
+        <div id="search-results-box" style="display: none; max-height: 140px; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px;"></div>
+      </div>
+
+      <!-- Navigation Inputs Form Container -->
+      <div id="navigation-form" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Caller Location -->
+        <div class="input-group">
+          <div class="input-label">
+            <span>Caller Location</span>
+            <span class="label-badge">Step 1</span>
+          </div>
+          <select id="select-caller" onchange="onSelectCallerPlace()">
+            <option value="">-- Choose Landmark or Click Map --</option>
+          </select>
+          <div class="row-inputs">
+            <input type="text" id="input-caller-coords" placeholder="Lat, Lon (e.g. 7.03, 38.48)" />
+            <button class="btn-small" id="btn-pick-caller" onclick="armPickMode('caller')" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Map</button>
+          </div>
+        </div>
+
+        <!-- Destination (Full Route Mode Only) -->
+        <div class="input-group" id="dest-group" style="display: none;">
+          <div class="input-label">
+            <span>Destination</span>
+            <span class="label-badge">Step 2</span>
+          </div>
+          <select id="select-dest" onchange="onSelectDestPlace()">
+            <option value="">-- Choose Landmark or Click Map --</option>
+          </select>
+          <div class="row-inputs">
+            <input type="text" id="input-dest-coords" placeholder="Lat, Lon (e.g. 7.05, 38.49)" />
+            <button class="btn-small" id="btn-pick-dest" onclick="armPickMode('dest')" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Map</button>
+          </div>
+
+          <div style="margin-top: 6px;">
+            <label class="input-label" style="font-size: 0.78rem; margin-bottom: 4px;">Travel Mode</label>
+            <div class="mode-selector">
+              <button class="mode-tab active" id="costing-auto" onclick="setCosting('auto')">Auto / Bajaj</button>
+              <button class="mode-tab" id="costing-ped" onclick="setCosting('pedestrian')">Walking</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-action" id="btn-submit" style="flex: 2;" onclick="executeAction()">
+            Find Nearest Taxi
+          </button>
+          <button class="btn-action btn-secondary" style="flex: 1;" onclick="resetForm()">
+            Reset
+          </button>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-box" id="result-box">
+          <div class="result-title" id="result-header" style="display:flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span>Nearest Taxi Station</span></div>
+
+          <div class="agent-script" id="agent-script">
+            Agent response will appear here...
+          </div>
+
+          <div class="stat-pills" id="stat-pills"></div>
+
+          <!-- Terrain Advisory Banner (Mount Tabor, etc.) -->
+          <div class="terrain-advisory" id="terrain-advisory" style="display: none;">
+            <div class="terrain-advisory-title">Terrain Advisory: Mount Tabor (Gara Tabor)</div>
+            <div class="terrain-advisory-desc">
+              Mount Tabor summit (1,900m) is pedestrian hiking access only. Vehicular transit terminates at <b>Tabor Gate Station (Foothill Base)</b>.
+            </div>
+            <button class="btn-small" style="background: var(--accent-amber); color: #000; font-weight: 700; width: fit-content; margin-top: 4px;" onclick="focusTaborGate()">
+              Route Vehicle to Trailhead Stand
+            </button>
+          </div>
+
+          <!-- Dynamic Live Tariff & Fare Estimator -->
+          <div class="fare-card" id="fare-card" style="display: none;">
+            <div class="fare-header">
+              <span style="display:inline-flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Estimated Tariff</span>
+              <span class="label-badge">Dynamic</span>
+            </div>
+            <div class="fare-options">
+              <div class="fare-pill">
+                <span class="fare-mode" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon ui-icon-lg" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2" fill="currentColor"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2" fill="currentColor"/></svg> Bajaj</span>
+                <span class="fare-val" id="fare-bajaj">-- ETB</span>
+              </div>
+              <div class="fare-pill">
+                <span class="fare-mode" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Taxi / Minibus</span>
+                <span class="fare-val" id="fare-taxi">-- ETB</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="maneuvers-container" style="display: none;">
+            <div class="section-title">Turn Directions</div>
+            <div class="maneuvers-list" id="maneuvers-list"></div>
+          </div>
+
+          <button id="btn-log-call" class="btn-small" style="background: var(--accent-green); color: #000; font-weight: bold; margin-top: 4px;" onclick="logCurrentCall()">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Log Call & Dispatch</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- History Container (Hidden by default) -->
+      <div id="history-container" style="display: none; flex-direction: column; gap: 10px;">
+        <div class="section-title">Today's Call History</div>
+        <div id="history-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Map -->
+  <main id="map"></main>
+
+  <div class="map-helper">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-weight: 700; color: #fff; font-size: 0.8rem;">Places & Map Layers</span>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="font-size: 0.72rem; color: #94a3b8;" id="poi-count-badge">266 Places</span>
+        <button id="btn-3d" onclick="toggle3DView()" style="padding: 3px 8px; font-size: 11px; background: #2563eb; color: #fff; border: 1px solid #60a5fa; border-radius: 4px; cursor: pointer; font-weight: 600; display:inline-flex; align-items:center; gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> 3D</button>
+      </div>
+    </div>
+    <div class="poi-filter-bar">
+      <div class="poi-chip active" data-cat="all" onclick="togglePOIFilter('all')">All</div>
+      <div class="poi-chip" data-cat="taxi_station" onclick="togglePOIFilter('taxi_station')">Taxis</div>
+      <div class="poi-chip" data-cat="hotel" onclick="togglePOIFilter('hotel')">Hotels</div>
+      <div class="poi-chip" data-cat="bank" onclick="togglePOIFilter('bank')">Banks</div>
+      <div class="poi-chip" data-cat="hospital" onclick="togglePOIFilter('hospital')">Health</div>
+      <div class="poi-chip" data-cat="fuel" onclick="togglePOIFilter('fuel')">Fuel</div>
+      <div class="poi-chip" data-cat="restaurant" onclick="togglePOIFilter('restaurant')">Food</div>
+      <div class="poi-chip" data-cat="worship" onclick="togglePOIFilter('worship')">Worship</div>
+      <div class="poi-chip" data-cat="school" onclick="togglePOIFilter('school')">Schools</div>
+    </div>
+    <div class="legend-row">
+      <span style="display:inline-flex; align-items:center; gap:4px;"><span class="legend-icon legend-caller"></span> Caller</span>
+      <span style="display:inline-flex; align-items:center; gap:4px;"><span class="legend-icon legend-dest"></span> Dest</span>
+      <span style="font-size:0.7rem; color:#94a3b8; margin-left:auto;">Click map to set caller / destination</span>
+    </div>
+  </div>
+
+  <!-- Add Station Modal -->
+  <div class="modal-backdrop" id="add-place-modal">
+    <div class="modal-box" style="width: 400px;">
+      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">
+        Add New Taxi Station
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">
+        Enter new terminal details. It will be immediately available for dispatch and map routing.
+      </p>
+      <input type="text" id="new-station-name" placeholder="Station Name (e.g. Millennium North Stand)" />
+      <input type="text" id="new-station-name-am" placeholder="Name in Amharic (e.g. ሚሊኒየም ሰሜን ማቆሚያ)" />
+      <div class="row-inputs">
+        <input type="text" id="new-station-coords" placeholder="Lat, Lon (e.g. 7.0543, 38.4812)" />
+        <button class="btn-small" id="btn-pick-new-station" onclick="armPickMode('new_station')" style="display:inline-flex;align-items:center;gap:4px;"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Map</button>
+      </div>
+      <input type="text" id="new-station-aliases" placeholder="Search aliases (e.g. millenium, 05 gate)" />
+      <input type="text" id="new-station-desc" placeholder="Description / Landmark notes" />
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">
+        <button class="btn-small" onclick="toggleAddPlaceModal(false)">Cancel</button>
+        <button class="btn-small" style="background: var(--accent-green); color: #000; font-weight: bold;" id="btn-save-station" onclick="saveNewStation()">Save Station</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="auth-modal">
+    <div class="modal-box">
+      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">
+        Agent Login
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">
+        Enter call center operator credentials (default: <b>admin / admin123</b> or <b>agent1 / agent123</b>).
+      </p>
+      <input type="text" id="login-username" placeholder="Username" value="agent1" />
+      <input type="password" id="login-password" placeholder="Password" value="agent123" />
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">
+        <button class="btn-small" onclick="toggleAuthModal(false)">Cancel</button>
+        <button class="btn-small" style="background: var(--primary); color: #fff;" onclick="performLogin()">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // ==========================================
+    // 20-Year Veteran UI/UX: Toast Notifications
+    // ==========================================
+    function showToast(message, type = 'info', duration = 3200) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const iconSvg = type === 'success' ? '<svg class="ui-icon" style="color:#10b981;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' :
+                      type === 'error' ? '<svg class="ui-icon" style="color:#ef4444;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' :
+                      type === 'warning' ? '<svg class="ui-icon" style="color:#f59e0b;" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' :
+                      '<svg class="ui-icon" style="color:#38bdf8;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      toast.innerHTML = `<span style="display:flex;align-items:center;">${iconSvg}</span><span style="flex:1;">${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(110%)';
+        setTimeout(() => toast.remove(), 350);
+      }, duration);
+    }
+
+    function toggleShortcutsModal(open) {
+      const modal = document.getElementById('shortcuts-modal');
+      if (modal) modal.style.display = open ? 'flex' : 'none';
+    }
+
+    // Global Keyboard Shortcuts Listener
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleShortcutsModal(false);
+        toggleAddPlaceModal(false);
+        toggleAuthModal(false);
+        pickMode = null;
+        updatePickButtons();
+        map.getCanvas().style.cursor = '';
+      } else if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+        e.preventDefault();
+        const searchInput = document.getElementById('quick-search');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      } else if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setAppMode('nearest');
+        showToast('Switched to Nearest Taxi Mode', 'info', 1800);
+      } else if (e.altKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        setAppMode('route');
+        showToast('Switched to Route Mode', 'info', 1800);
+      } else if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        setAppMode('ai');
+        showToast('Switched to AI Assistant Mode', 'info', 1800);
+      } else if (e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        toggleAddPlaceModal(true);
+      } else if (e.altKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        clearResults();
+        showToast('Cleared map and selection', 'info', 1800);
+      }
+    });
+
+    // Mount Tabor Trailhead Rerouting Helper
+    function focusTaborGate() {
+      // Set destination to Tabor Gate Station: 7.026825, 38.486486
+      setDestCoords(7.026825, 38.486486, 'Tabor Gate Station (ታቦር መግቢያ)');
+      document.getElementById('terrain-advisory').style.display = 'none';
+      showToast('Set vehicle destination to Mount Tabor Foothill Trailhead!', 'success', 3000);
+      if (appMode === 'route') {
+        submitForm();
+      }
+    }
+
+    // Dynamic Live Tariff Calculation
+    function updateFareEstimates(distanceMeters) {
+      const fareCard = document.getElementById('fare-card');
+      if (!distanceMeters || distanceMeters <= 0) {
+        if (fareCard) fareCard.style.display = 'none';
+        return;
+      }
+      const km = distanceMeters / 1000;
+      // Standard Hawassa Bajaj rate: 20 ETB base + 15 ETB/km
+      const bajaj = Math.max(20, Math.round(20 + km * 15));
+      // Standard Minibus/Taxi rate: 40 ETB base + 25 ETB/km
+      const taxi = Math.max(40, Math.round(40 + km * 25));
+
+      document.getElementById('fare-bajaj').textContent = `${bajaj} ETB`;
+      document.getElementById('fare-taxi').textContent = `${taxi} ETB`;
+      if (fareCard) fareCard.style.display = 'flex';
+    }
+
+    // Dynamic Category Counters on Filter Chips
+    function updateCategoryCounters(places) {
+      const counts = { all: places.length };
+      places.forEach(p => {
+        const cat = p.category || 'landmark';
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+
+      document.getElementById('poi-count-badge').textContent = `${places.length} Places`;
+
+      document.querySelectorAll('.poi-chip').forEach(chip => {
+        const cat = chip.getAttribute('data-cat');
+        if (cat === 'all') {
+          chip.textContent = `All (${places.length})`;
+        } else {
+          const meta = CATEGORY_META[cat] || { label: cat };
+          const count = counts[cat] || 0;
+          chip.textContent = `${meta.label} (${count})`;
+        }
+      });
+    }
+
+    let currentAgent = null;
+    let appMode = 'nearest';
+    let travelCosting = 'auto';
+    let pickMode = null;
+
+    let callerMarker = null;
+    let destMarker = null;
+    let stationMarkers = [];
+    let routeSourceAdded = false;
+    let walkSourceAdded = false;
+
+    let placesList = [];
+    let lastSearchResult = null;
+    let poiMarkersMap = {}; // id -> maplibre Marker
+
+    // ==========================================
+    // 100% Offline MapLibre GL JS Initialization
+    // ==========================================
+    const tileServerUrl = `${window.location.protocol}//${window.location.hostname || 'localhost'}:8081`;
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: `${tileServerUrl}/styles/hawassa/style.json`,
+      center: [38.475, 7.06],
+      zoom: 13,
+      maxZoom: 19,
+      maxPitch: 65,
+      pitchWithRotate: true
+    });
+
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+
+    let is3DMode = false;
+    function toggle3DView() {
+      is3DMode = !is3DMode;
+      const btn = document.getElementById('btn-3d');
+      if (is3DMode) {
+        map.easeTo({ pitch: 55, bearing: -20, duration: 1200 });
+        btn.textContent = '2D View';
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#34d399';
+      } else {
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+        btn.textContent = '3D View';
+        btn.style.background = '#2563eb';
+        btn.style.borderColor = '#60a5fa';
+      }
+    }
+
+    // Map click handler
+    map.on('click', (e) => {
+      const lat = parseFloat(e.lngLat.lat.toFixed(6));
+      const lon = parseFloat(e.lngLat.lng.toFixed(6));
+
+      if (pickMode === 'new_station') {
+        document.getElementById('new-station-coords').value = `${lat}, ${lon}`;
+        toggleAddPlaceModal(true);
+        pickMode = null;
+        updatePickButtons();
+        return;
+      }
+
+      if (pickMode === 'dest' || (appMode === 'route' && callerMarker && !destMarker)) {
+        setDestCoords(lat, lon);
+        pickMode = null;
+      } else {
+        setCallerCoords(lat, lon);
+        pickMode = null;
+      }
+      updatePickButtons();
+    });
+
+    function armPickMode(target) {
+      pickMode = (pickMode === target) ? null : target;
+      updatePickButtons();
+      map.getCanvas().style.cursor = pickMode ? 'crosshair' : '';
+    }
+
+    function updatePickButtons() {
+      document.getElementById('btn-pick-caller').classList.toggle('active', pickMode === 'caller');
+      document.getElementById('btn-pick-dest').classList.toggle('active', pickMode === 'dest');
+      const btnNew = document.getElementById('btn-pick-new-station');
+      if (btnNew) btnNew.classList.toggle('active', pickMode === 'new_station');
+    }
+
+    // Helper: create a colored pin element
+    function makePinEl(color) {
+      const el = document.createElement('div');
+      el.style.cssText = `width:28px;height:40px;cursor:pointer;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><path fill="${encodeURIComponent(color)}" stroke="%23fff" stroke-width="1.5" d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.27 21.73 0 14 0z"/><circle cx="14" cy="14" r="6" fill="%23fff" opacity="0.85"/></svg>') no-repeat center/contain`;
+      return el;
+    }
+
+    function setCallerCoords(lat, lon, placeName = '') {
+      document.getElementById('input-caller-coords').value = `${lat}, ${lon}`;
+      if (callerMarker) callerMarker.remove();
+      const popup = new maplibregl.Popup({ offset: 30, closeButton: true })
+        .setHTML(`<b style="color:#10b981">Caller Location</b><br>${placeName || `${lat}, ${lon}`}`);
+      callerMarker = new maplibregl.Marker({ element: makePinEl('#10b981'), anchor: 'bottom' })
+        .setLngLat([lon, lat])
+        .setPopup(popup)
+        .addTo(map);
+      callerMarker.togglePopup();
+    }
+
+    function setDestCoords(lat, lon, placeName = '') {
+      document.getElementById('input-dest-coords').value = `${lat}, ${lon}`;
+      if (destMarker) destMarker.remove();
+      const popup = new maplibregl.Popup({ offset: 30, closeButton: true })
+        .setHTML(`<b style="color:#ef4444">Destination</b><br>${placeName || `${lat}, ${lon}`}`);
+      destMarker = new maplibregl.Marker({ element: makePinEl('#ef4444'), anchor: 'bottom' })
+        .setLngLat([lon, lat])
+        .setPopup(popup)
+        .addTo(map);
+      destMarker.togglePopup();
+    }
+
+    // Helper: add or update a GeoJSON line source/layer on the map
+    function upsertLineLayer(sourceId, layerId, coordinates, color, width, dashArray) {
+      const apply = () => {
+        const geojson = {
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: coordinates.map(([lt,ln]) => [ln, lt]) }
+        };
+        if (map.getSource(sourceId)) {
+          map.getSource(sourceId).setData(geojson);
+        } else {
+          map.addSource(sourceId, { type: 'geojson', data: geojson });
+          const layerSpec = {
+            id: layerId, type: 'line', source: sourceId,
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: { 'line-color': color, 'line-width': width, 'line-opacity': 0.9 }
+          };
+          if (dashArray) layerSpec.paint['line-dasharray'] = dashArray;
+          map.addLayer(layerSpec);
+        }
+      };
+      if (map.loaded()) {
+        apply();
+      } else {
+        map.once('load', apply);
+      }
+    }
+
+    function removeLineLayer(sourceId, layerId) {
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+    }
+
+    function fitCoords(coordPairs, padding = 60) {
+      // coordPairs: [[lat,lon], ...]
+      if (!coordPairs.length) return;
+      const lngs = coordPairs.map(c => c[1]);
+      const lats = coordPairs.map(c => c[0]);
+      map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding });
+    }
+
+    function setAppMode(mode) {
+      appMode = mode;
+      document.getElementById('tab-nearest').classList.toggle('active', mode === 'nearest');
+      document.getElementById('tab-route').classList.toggle('active', mode === 'route');
+      document.getElementById('tab-ai').classList.toggle('active', mode === 'ai');
+      document.getElementById('tab-history').classList.toggle('active', mode === 'history');
+
+
+      if (mode === 'history') {
+        document.getElementById('navigation-form').style.display = 'none';
+        document.getElementById('ai-container').style.display = 'none';
+        document.getElementById('search-group').style.display = 'none';
+        document.getElementById('history-container').style.display = 'flex';
+        loadRecentCalls();
+      } else if (mode === 'ai') {
+        document.getElementById('navigation-form').style.display = 'none';
+        document.getElementById('ai-container').style.display = 'flex';
+        document.getElementById('search-group').style.display = 'none';
+        document.getElementById('history-container').style.display = 'none';
+      } else {
+        document.getElementById('navigation-form').style.display = 'flex';
+        document.getElementById('ai-container').style.display = 'none';
+        document.getElementById('search-group').style.display = 'flex';
+        document.getElementById('history-container').style.display = 'none';
+        document.getElementById('dest-group').style.display = (mode === 'route') ? 'flex' : 'none';
+        document.getElementById('btn-submit').textContent = (mode === 'nearest') ? 'Find Nearest Taxi' : 'Calculate Full Route';
+      }
+      clearResults();
+    }
+
+    async function askAIAssistant() {
+      const text = document.getElementById('ai-input').value.trim();
+      if (!text) {
+        showToast('Please enter a caller statement or question.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btn-ask-ai');
+      btn.textContent = 'Processing...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/ai/dispatch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (res.status !== 200) throw new Error(data.detail || 'AI parsing error');
+
+        // Set caller marker
+        if (data.origin) {
+          setCallerCoords(data.origin.lat, data.origin.lon, data.origin.name);
+        }
+
+        // Set dest marker and draw route if present
+        if (data.destination) {
+          setDestCoords(data.destination.lat, data.destination.lon, data.destination.name);
+        }
+
+        if (data.route && data.route.coordinates) {
+          upsertLineLayer('route-src', 'route-line', data.route.coordinates, '#2563eb', 5, null);
+          fitCoords(data.route.coordinates, 80);
+        } else if (data.nearest_station) {
+          map.flyTo({ center: [data.origin.lon, data.origin.lat], zoom: 16 });
+        }
+
+        lastSearchResult = {
+          type: data.destination ? 'route' : 'nearest',
+          caller_lat: data.origin.lat,
+          caller_lon: data.origin.lon,
+          dest_lat: data.destination ? data.destination.lat : null,
+          dest_lon: data.destination ? data.destination.lon : null,
+          nearest_station: data.nearest_station.name,
+          distance_m: data.route ? data.route.distance_m : data.nearest_station.distance_m,
+          duration_min: data.route ? data.route.duration_min : 1,
+          travel_mode: 'auto'
+        };
+
+        // Render AI Result
+        
+      // Check for Mount Tabor terrain advisory
+      const terrainBox = document.getElementById('terrain-advisory');
+      const isNearTabor = (lat, lon) => {
+        if (!lat || !lon) return false;
+        return (Math.abs(lat - 7.028) < 0.008 && Math.abs(lon - 38.51) < 0.008);
+      };
+      
+      const destCoords = parseCoords(document.getElementById('input-dest-coords').value);
+      const callerCoords = parseCoords(document.getElementById('input-caller-coords').value);
+      
+      if (terrainBox) {
+        if ((destCoords && isNearTabor(destCoords.lat, destCoords.lon)) || 
+            (res.destination_name && res.destination_name.toLowerCase().includes('tabor')) ||
+            (res.name && res.name.toLowerCase().includes('tabor hill'))) {
+          terrainBox.style.display = 'flex';
+        } else {
+          terrainBox.style.display = 'none';
+        }
+      }
+
+      // Update Fare Estimator
+      if (res.distance_m) {
+        updateFareEstimates(res.distance_m);
+      } else {
+        const fareCard = document.getElementById('fare-card');
+        if (fareCard) fareCard.style.display = 'none';
+      }
+
+      document.getElementById('result-box').classList.add('visible');
+
+        document.getElementById('result-header').textContent = `AI Dispatch Proposal`;
+
+        document.getElementById('agent-script').innerHTML = `
+          <div style="margin-bottom: 6px;"><b>English Talk-Track:</b><br>"${data.script_en}"</div>
+          <div style="border-top: 1px solid #475569; padding-top: 6px;"><b>Amharic (አማርኛ) Talk-Track:</b><br>"${data.script_am}"</div>
+        `;
+
+        document.getElementById('stat-pills').innerHTML = `
+          <div class="stat-pill">Origin: <strong>${data.origin.name}</strong></div>
+          ${data.destination ? `<div class="stat-pill">Dest: <strong>${data.destination.name}</strong></div>` : ''}
+          <div class="stat-pill">Station: <strong>${data.nearest_station.name}</strong></div>
+          <div class="stat-pill">Walk: <strong>${data.nearest_station.distance_m} m</strong></div>
+          ${data.route ? `<div class="stat-pill">Trip: <strong>${(data.route.distance_m/1000).toFixed(2)} km</strong></div>` : ''}
+        `;
+
+        // Switch to form view showing the result card
+        document.getElementById('navigation-form').style.display = 'flex';
+
+      } catch (err) {
+        showToast('AI Assistant Error: ' + err.message, 'error');
+      } finally {
+        btn.textContent = '<span style="display:inline-flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Parse with AI</span>';
+        btn.disabled = false;
+      }
+    }
+
+    function setCosting(costing) {
+      travelCosting = costing;
+      document.getElementById('costing-auto').classList.toggle('active', costing === 'auto');
+      document.getElementById('costing-ped').classList.toggle('active', costing === 'pedestrian');
+    }
+
+    // ==========================================
+    // Auth Management
+    // ==========================================
+    function getAuthHeaders() {
+      const token = localStorage.getItem('hawassa_agent_token');
+      return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    async function checkCurrentSession() {
+      const token = localStorage.getItem('hawassa_agent_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+        if (res.status === 200) {
+          currentAgent = await res.json();
+          document.getElementById('agent-label').textContent = `${currentAgent.username} (${currentAgent.role})`;
+          document.getElementById('agent-status-dot').className = 'dot';
+        } else {
+          localStorage.removeItem('hawassa_agent_token');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function toggleAuthModal(show = true) {
+      if (currentAgent && show) {
+        if (confirm(`Logged in as ${currentAgent.full_name}. Do you want to logout?`)) {
+          logoutAgent();
+        }
+        return;
+      }
+      document.getElementById('auth-modal').style.display = show ? 'flex' : 'none';
+    }
+
+    async function performLogin() {
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value.trim();
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        if (res.status === 200) {
+          const data = await res.json();
+          localStorage.setItem('hawassa_agent_token', data.token);
+          currentAgent = data;
+          document.getElementById('agent-label').textContent = `${data.username} (${data.role})`;
+          document.getElementById('agent-status-dot').className = 'dot';
+          toggleAuthModal(false);
+        } else {
+          showToast('Invalid operator credentials', 'error');
+        }
+      } catch (err) {
+        showToast('Login failed: ' + err.message, 'error');
+      }
+    }
+
+    async function logoutAgent() {
+      await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders() });
+      localStorage.removeItem('hawassa_agent_token');
+      currentAgent = null;
+      document.getElementById('agent-label').textContent = 'Agent Login';
+      document.getElementById('agent-status-dot').className = 'dot offline';
+    }
+
+    function toggleAddPlaceModal(show = true) {
+      document.getElementById('add-place-modal').style.display = show ? 'flex' : 'none';
+      if (!show && pickMode === 'new_station') {
+        pickMode = null;
+        updatePickButtons();
+      }
+    }
+
+    async function saveNewStation() {
+      const name = document.getElementById('new-station-name').value.trim();
+      const name_am = document.getElementById('new-station-name-am').value.trim();
+      const coordsStr = document.getElementById('new-station-coords').value.trim();
+      const aliases = document.getElementById('new-station-aliases').value.trim();
+      const desc = document.getElementById('new-station-desc').value.trim();
+
+      const coords = parseCoords(coordsStr);
+      if (!name) { showToast('Please enter station name', 'warning'); return; }
+      if (!coords) { alert('Please enter valid coordinates (Lat, Lon) or click Map'); return; }
+
+      const btn = document.getElementById('btn-save-station');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/places', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+          body: JSON.stringify({
+            name: name,
+            name_am: name_am,
+            category: 'taxi_station',
+            latitude: coords.lat,
+            longitude: coords.lon,
+            aliases: aliases,
+            description: desc
+          })
+        });
+        const data = await res.json();
+        if (res.status === 200) {
+          showToast(`Successfully added station: ${name}`, 'success');
+          toggleAddPlaceModal(false);
+          document.getElementById('new-station-name').value = '';
+          document.getElementById('new-station-name-am').value = '';
+          document.getElementById('new-station-coords').value = '';
+          document.getElementById('new-station-aliases').value = '';
+          document.getElementById('new-station-desc').value = '';
+          loadInitialData();
+        } else {
+          showToast(data.detail || 'Failed to add station', 'error');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.textContent = 'Save Station';
+        btn.disabled = false;
+      }
+    }
+
+    // ==========================================
+    // Places and Map Setup
+    // ==========================================
+    async function loadInitialData() {
+      try {
+        checkCurrentSession();
+
+        const statusRes = await fetch('/api/status');
+        const status = await statusRes.json();
+        
+        document.getElementById('db-status').textContent = `${status.database.place_count} Places`;
+        document.getElementById('db-dot').className = status.database.connected ? 'dot' : 'dot offline';
+
+        document.getElementById('valhalla-status').textContent = status.routing_engine.online ? 'Valhalla Online' : 'Valhalla Offline';
+        document.getElementById('valhalla-dot').className = status.routing_engine.online ? 'dot' : 'dot offline';
+
+        try {
+          const mapCheck = await fetch(`${tileServerUrl}/health`);
+          document.getElementById('map-dot').className = mapCheck.ok ? 'dot' : 'dot offline';
+          document.getElementById('map-status').textContent = mapCheck.ok ? 'Offline Map Active' : 'Map Server Offline';
+        } catch (e) {
+          document.getElementById('map-dot').className = 'dot offline';
+          document.getElementById('map-status').textContent = 'Map Server Offline';
+        }
+
+        const placesRes = await fetch('/api/places');
+        const data = await placesRes.json();
+        placesList = data.places || [];
+
+        populatePlaceDropdowns(placesList);
+        updateCategoryCounters(placesList);
+        plotTaxiPoints(placesList);
+
+        // Load stats
+        const statsRes = await fetch('/api/calls/stats');
+        const statsData = await statsRes.json();
+        document.getElementById('total-calls-badge').textContent = statsData.total_calls;
+
+      } catch (err) {
+        console.error('Failed to load initial data', err);
+      }
+    }
+
+
+    let currentPOIFilter = 'all';
+
+    const CATEGORY_META = {
+      'taxi_station': { label: 'Taxi Station',   color: '#f59e0b', code: 'taxi' },
+      'hotel':        { label: 'Hotel & Resort', color: '#8b5cf6', code: 'hotel' },
+      'bank':         { label: 'Bank & ATM',     color: '#10b981', code: 'bank' },
+      'hospital':     { label: 'Health Clinic',  color: '#ef4444', code: 'health' },
+      'fuel':         { label: 'Fuel Station',   color: '#eab308', code: 'fuel' },
+      'restaurant':   { label: 'Restaurant',     color: '#f97316', code: 'food' },
+      'worship':      { label: 'Worship',        color: '#d97706', code: 'worship' },
+      'school':       { label: 'Education',      color: '#06b6d4', code: 'school' },
+      'landmark':     { label: 'Landmark',       color: '#64748b', code: 'landmark' },
+      'market':       { label: 'Market',         color: '#ea580c', code: 'market' }
+    };
+
+    
+
+    
+    function focusAllTaxiStations() {
+      togglePOIFilter('taxi_station');
+      const taxiStations = placesList.filter(p => p.category === 'taxi_station');
+      if (taxiStations.length) {
+        fitCoords(taxiStations.map(p => [p.lat, p.lon]), 80);
+        showToast(`Showing all ${taxiStations.length} registered Taxi/Bajaj stations`, 'info', 2500);
+      }
+    }
+
+    function togglePOIFilter(cat) {
+      currentPOIFilter = cat;
+      document.querySelectorAll('.poi-chip').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-cat') === cat);
+      });
+      renderPOIMarkers();
+    }
+
+    function populatePlaceDropdowns(places) {
+      const selectCaller = document.getElementById('select-caller');
+      const selectDest = document.getElementById('select-dest');
+
+      selectCaller.innerHTML = '<option value="">-- Choose Landmark or Click Map --</option>';
+      selectDest.innerHTML = '<option value="">-- Choose Landmark or Click Map --</option>';
+
+      const groupsCaller = {};
+      const groupsDest = {};
+
+      Object.keys(CATEGORY_META).forEach(k => {
+        const g1 = document.createElement('optgroup');
+        g1.label = CATEGORY_META[k].label;
+        groupsCaller[k] = g1;
+
+        const g2 = document.createElement('optgroup');
+        g2.label = CATEGORY_META[k].label;
+        groupsDest[k] = g2;
+      });
+
+      places.forEach(p => {
+        const cat = p.category || 'landmark';
+        const label = p.name_am ? `${p.name} (${p.name_am})` : p.name;
+
+        const opt1 = document.createElement('option');
+        opt1.value = `${p.lat},${p.lon}`;
+        opt1.textContent = label;
+
+        const opt2 = document.createElement('option');
+        opt2.value = `${p.lat},${p.lon}`;
+        opt2.textContent = label;
+
+        if (groupsCaller[cat]) groupsCaller[cat].appendChild(opt1);
+        if (groupsDest[cat]) groupsDest[cat].appendChild(opt2);
+      });
+
+      ['taxi_station','hotel','bank','hospital','fuel','restaurant','worship','school','market','landmark'].forEach(k => {
+        if (groupsCaller[k] && groupsCaller[k].children.length > 0) {
+          selectCaller.appendChild(groupsCaller[k]);
+          selectDest.appendChild(groupsDest[k]);
+        }
+      });
+    }
+
+    function renderPOIMarkers() {
+      stationMarkers.forEach(m => m.remove());
+      stationMarkers = [];
+
+      placesList.forEach(p => {
+        const cat = p.category || 'landmark';
+        if (currentPOIFilter !== 'all' && currentPOIFilter !== cat) return;
+
+        const meta = CATEGORY_META[cat] || CATEGORY_META['landmark'];
+        
+
+        let el = document.createElement('div');
+        el.title = p.name;
+        if (cat === 'taxi_station') {
+          // Uncluttered, crisp 26px vector Taxi station marker
+          el.className = 'taxi-station-pin';
+          el.innerHTML = `
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+              <circle cx="7" cy="17" r="2" fill="#000"/>
+              <path d="M9 17h6"/>
+              <circle cx="17" cy="17" r="2" fill="#000"/>
+            </svg>
+          `;
+        } else {
+          el.style.cssText = [
+            'width:12px','height:12px','border-radius:50%','cursor:pointer',
+            `background:${meta.color}`,'border:1.5px solid rgba(255,255,255,0.9)',
+            'box-shadow:0 1px 4px rgba(0,0,0,0.4)',
+            'opacity:0.85'
+          ].join(';');
+        }
+
+        const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const popupHtml = `
+          <div style="font-size:13px;line-height:1.5;min-width:180px;">
+            <div style="font-size:10px;font-weight:700;color:${meta.color};text-transform:uppercase;margin-bottom:2px;">${meta.label}</div>
+            <b style="font-size:14px;color:#f8fafc;">${p.name}</b><br>
+            ${p.name_am ? `<span style="font-size:12px;color:#94a3b8;"><b>${p.name_am}</b></span><br>` : ''}
+            <i style="color:#cbd5e1;font-size:12px;">${p.description || ''}</i>
+            <div style="font-size:11px;color:#64748b;margin-top:2px;">${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</div>
+            <div style="margin-top:8px;display:flex;gap:6px;">
+              <button onclick="setCallerCoords(${p.lat},${p.lon},'${safeName}');closeActivePopup();"
+                style="padding:4px 8px;font-size:11px;background:#10b981;color:#fff;border:none;border-radius:4px;cursor:pointer;">
+                Set Caller
+              </button>
+              <button onclick="setDestCoords(${p.lat},${p.lon},'${safeName}');closeActivePopup();"
+                style="padding:4px 8px;font-size:11px;background:#ef4444;color:#fff;border:none;border-radius:4px;cursor:pointer;">
+                Set Dest
+              </button>
+            </div>
+          </div>`;
+
+        const popup = new maplibregl.Popup({ offset: 14, closeButton: true }).setHTML(popupHtml);
+        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([p.lon, p.lat])
+          .setPopup(popup)
+          .addTo(map);
+
+        stationMarkers.push(marker);
+      });
+    }
+
+    function closeActivePopup() {
+      document.querySelectorAll('.maplibregl-popup').forEach(el => el.remove());
+    }
+
+    function plotTaxiPoints(places) {
+      renderPOIMarkers();
+    }
+
+    let searchTimer = null;
+    function onQuickSearch(val) {
+      clearTimeout(searchTimer);
+      const box = document.getElementById('search-results-box');
+      if (!val || val.trim().length === 0) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+
+      searchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(val.trim())}`);
+          const data = await res.json();
+          if (data.results && data.results.length > 0) {
+            box.style.display = 'block';
+            box.innerHTML = '';
+            data.results.forEach(p => {
+              const item = document.createElement('div');
+              item.style.cssText = 'padding:6px 8px;font-size:12px;border-bottom:1px solid #475569;cursor:pointer;display:flex;justify-content:space-between;align-items:center;';
+              item.innerHTML = `
+                <div>
+                  <strong>${p.name}</strong> ${p.name_am ? `<span style="color:#94a3b8;">(${p.name_am})</span>` : ''}
+                  <div style="font-size:10px;color:#94a3b8;">${p.category === 'taxi_station' ? 'Taxi Station' : 'Landmark'}</div>
+                </div>
+                <div style="display:flex;gap:4px;">
+                  <button style="padding:2px 6px;font-size:10px;background:#10b981;color:#fff;border:none;border-radius:3px;cursor:pointer;">Caller</button>
+                  <button style="padding:2px 6px;font-size:10px;background:#ef4444;color:#fff;border:none;border-radius:3px;cursor:pointer;">Dest</button>
+                </div>`;
+              const btns = item.querySelectorAll('button');
+              btns[0].onclick = (e) => {
+                e.stopPropagation();
+                setCallerCoords(p.lat, p.lon, p.name);
+                map.flyTo({ center: [p.lon, p.lat], zoom: 16 });
+                box.style.display = 'none';
+              };
+              btns[1].onclick = (e) => {
+                e.stopPropagation();
+                setDestCoords(p.lat, p.lon, p.name);
+                map.flyTo({ center: [p.lon, p.lat], zoom: 16 });
+                box.style.display = 'none';
+              };
+              item.onclick = () => {
+                setCallerCoords(p.lat, p.lon, p.name);
+                map.flyTo({ center: [p.lon, p.lat], zoom: 16 });
+                box.style.display = 'none';
+              };
+              box.appendChild(item);
+            });
+          } else {
+            box.style.display = 'block';
+            box.innerHTML = '<div style="padding:6px;font-size:12px;color:#94a3b8;">No matching places found.</div>';
+          }
+        } catch (e) {
+          console.error('Search error', e);
+        }
+      }, 200);
+    }
+
+    function onSelectCallerPlace() {
+      const val = document.getElementById('select-caller').value;
+      if (!val) return;
+      const [lat, lon] = val.split(',').map(Number);
+      const opt = document.getElementById('select-caller').selectedOptions[0];
+      setCallerCoords(lat, lon, opt.textContent);
+      map.flyTo({ center: [lon, lat], zoom: 15 });
+    }
+
+    function onSelectDestPlace() {
+      const val = document.getElementById('select-dest').value;
+      if (!val) return;
+      const [lat, lon] = val.split(',').map(Number);
+      const opt = document.getElementById('select-dest').selectedOptions[0];
+      setDestCoords(lat, lon, opt.textContent);
+      map.flyTo({ center: [lon, lat], zoom: 15 });
+    }
+
+    function parseCoords(str) {
+      if (!str || !str.includes(',')) return null;
+      const parts = str.split(',').map(s => parseFloat(s.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        return { lat: parts[0], lon: parts[1] };
+      }
+      return null;
+    }
+
+    async function executeAction() {
+      const callerStr = document.getElementById('input-caller-coords').value;
+      const callerCoords = parseCoords(callerStr);
+
+      if (!callerCoords) {
+        showToast('Please choose or click a valid Caller Location on the map.', 'warning');
+        return;
+      }
+
+      if (appMode === 'nearest') {
+        await findNearestTaxi(callerCoords.lat, callerCoords.lon);
+      } else {
+        const destStr = document.getElementById('input-dest-coords').value;
+        const destCoords = parseCoords(destStr);
+        if (!destCoords) {
+          showToast('Please choose or click a valid Destination on the map.', 'warning');
+          return;
+        }
+        await calculateFullRoute(callerCoords, destCoords);
+      }
+    }
+
+    async function findNearestTaxi(lat, lon) {
+      try {
+        const res = await fetch('/api/nearest-taxi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon })
+        });
+        const data = await res.json();
+        const nearest = data.nearest;
+
+        lastSearchResult = {
+          type: 'nearest',
+          caller_lat: lat, caller_lon: lon,
+          nearest_station: nearest.name,
+          distance_m: nearest.distance_m,
+          duration_min: data.walk_route ? data.walk_route.duration_min : 1,
+          travel_mode: 'pedestrian'
+        };
+
+        document.getElementById('result-box').classList.add('visible');
+        document.getElementById('result-header').textContent = `Nearest: ${nearest.name}`;
+
+        const walk = data.walk_route;
+        const distText = walk
+          ? `${walk.distance_m} m (${walk.duration_min} min walk)`
+          : `${nearest.distance_m} m direct`;
+
+        document.getElementById('agent-script').innerHTML = `
+          <b>Agent Talk-Track for Caller:</b><br>
+          "The closest taxi station to your position is <b>${nearest.name}</b>, approximately <b>${distText}</b> away.
+          ${nearest.description ? `<i>(${nearest.description})</i>` : ''}"`;
+
+        document.getElementById('stat-pills').innerHTML = `
+          <div class="stat-pill">Terminal: <strong>${nearest.name}</strong></div>
+          <div class="stat-pill">Distance: <strong>${nearest.distance_m} m</strong></div>
+          <div class="stat-pill">GPS: <strong>${nearest.lat.toFixed(5)}, ${nearest.lon.toFixed(5)}</strong></div>`;
+
+        // Draw clean route line directly to nearest station
+        removeLineLayer('walk-src', 'walk-line');
+        const coords = (walk && walk.coordinates) ? walk.coordinates : [[lat, lon], [nearest.lat, nearest.lon]];
+        upsertLineLayer('walk-src', 'walk-line', coords, '#10b981', 4, [6, 4]);
+        fitCoords(coords, 90);
+
+        // Highlight nearest station pin and open its card
+        document.querySelectorAll('.taxi-station-pin').forEach(pin => pin.classList.remove('highlighted'));
+        const activeMarker = stationMarkers.find(m => {
+          const lngLat = m.getLngLat();
+          return Math.abs(lngLat.lat - nearest.lat) < 0.0001 && Math.abs(lngLat.lng - nearest.lon) < 0.0001;
+        });
+
+        if (activeMarker) {
+          const pinEl = activeMarker.getElement();
+          if (pinEl) pinEl.classList.add('highlighted');
+          activeMarker.togglePopup();
+        }
+
+        document.getElementById('maneuvers-container').style.display = 'none';
+
+      } catch (err) {
+        showToast('Error fetching nearest taxi: ' + err.message, 'error');
+      }
+    }
+
+    async function calculateFullRoute(caller, dest) {
+      try {
+        const [nearestRes, routeRes] = await Promise.all([
+          fetch('/api/nearest-taxi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat: caller.lat, lon: caller.lon })
+          }),
+          fetch('/api/route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              start_lat: caller.lat, start_lon: caller.lon,
+              end_lat: dest.lat, end_lon: dest.lon,
+              costing: travelCosting
+            })
+          })
+        ]);
+
+        const nearestData = await nearestRes.json();
+        const routeData = await routeRes.json();
+        const nearest = nearestData.nearest;
+
+        lastSearchResult = {
+          type: 'route',
+          caller_lat: caller.lat, caller_lon: caller.lon,
+          dest_lat: dest.lat, dest_lon: dest.lon,
+          nearest_station: nearest.name,
+          distance_m: routeData.distance_m,
+          duration_min: routeData.duration_min,
+          travel_mode: travelCosting
+        };
+
+        document.getElementById('result-box').classList.add('visible');
+        document.getElementById('result-header').textContent = `Route (${travelCosting})`;
+
+        document.getElementById('agent-script').innerHTML = `
+          <b>Agent Talk-Track for Caller:</b><br>
+          "1. Nearest taxi station is <b>${nearest.name}</b> (${nearest.distance_m} m from you).<br>
+          2. Total route to destination: <b>${(routeData.distance_m / 1000).toFixed(2)} km</b> (~<b>${routeData.duration_min} min</b>)."`;
+
+        document.getElementById('stat-pills').innerHTML = `
+          <div class="stat-pill">Distance: <strong>${(routeData.distance_m/1000).toFixed(2)} km</strong></div>
+          <div class="stat-pill">Est. Time: <strong>${routeData.duration_min} min</strong></div>
+          <div class="stat-pill">Mode: <strong>${travelCosting}</strong></div>
+          <div class="stat-pill">Engine: <strong>${routeData.engine}</strong></div>`;
+
+        const maneuversList = document.getElementById('maneuvers-list');
+        maneuversList.innerHTML = '';
+        if (routeData.maneuvers && routeData.maneuvers.length > 0) {
+          routeData.maneuvers.forEach((m, idx) => {
+            const item = document.createElement('div');
+            item.className = 'maneuver-item';
+            item.innerHTML = `<span style="color:#38bdf8;font-weight:bold;">${idx + 1}.</span> <span>${m.instruction} (${m.distance_m} m)</span>`;
+            maneuversList.appendChild(item);
+          });
+          document.getElementById('maneuvers-container').style.display = 'block';
+        } else {
+          document.getElementById('maneuvers-container').style.display = 'none';
+        }
+
+        removeLineLayer('walk-src', 'walk-line');
+        removeLineLayer('route-src', 'route-line');
+
+        const routeColor = travelCosting === 'pedestrian' ? '#10b981' : '#2563eb';
+        upsertLineLayer('route-src', 'route-line', routeData.coordinates, routeColor, 6, null);
+        fitCoords(routeData.coordinates, 70);
+
+      } catch (err) {
+        showToast('Error calculating route: ' + err.message, 'error');
+      }
+    }
+
+    async function logCurrentCall() {
+      if (!lastSearchResult) return;
+      try {
+        const callerNameOpt = document.getElementById('select-caller').selectedOptions[0];
+        const destNameOpt = document.getElementById('select-dest').selectedOptions[0];
+
+        const payload = {
+          caller_name: callerNameOpt ? callerNameOpt.textContent : 'Caller',
+          caller_lat: lastSearchResult.caller_lat,
+          caller_lon: lastSearchResult.caller_lon,
+          dest_name: destNameOpt ? destNameOpt.textContent : '',
+          dest_lat: lastSearchResult.dest_lat || null,
+          dest_lon: lastSearchResult.dest_lon || null,
+          nearest_station: lastSearchResult.nearest_station,
+          distance_m: lastSearchResult.distance_m,
+          duration_min: lastSearchResult.duration_min,
+          travel_mode: lastSearchResult.travel_mode,
+          status: 'dispatched'
+        };
+
+        const res = await fetch('/api/calls/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+          body: JSON.stringify(payload)
+        });
+        if (res.status === 200) {
+          const btn = document.getElementById('btn-log-call');
+          btn.textContent = 'Call Logged';
+          btn.style.background = '#475569';
+          setTimeout(() => {
+            btn.textContent = '<span style="display:inline-flex;align-items:center;gap:6px;"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Log Call & Dispatch</span>';
+            btn.style.background = 'var(--accent-green)';
+          }, 2000);
+          const statsRes = await fetch('/api/calls/stats');
+          const statsData = await statsRes.json();
+          document.getElementById('total-calls-badge').textContent = statsData.total_calls;
+        }
+      } catch (err) {
+        showToast('Failed to log call: ' + err.message, 'error');
+      }
+    }
+
+    async function loadRecentCalls() {
+      try {
+        const res = await fetch('/api/calls/recent?limit=15');
+        const data = await res.json();
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+
+        if (!data.calls || data.calls.length === 0) {
+          list.innerHTML = '<div style="font-size:0.8rem;color:#94a3b8;">No dispatch calls recorded yet today.</div>';
+          return;
+        }
+
+        data.calls.forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'history-card';
+          const timeStr = new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;font-weight:bold;color:#38bdf8;">
+              <span>${c.nearest_station}</span>
+              <span style="color:#94a3b8;font-size:0.72rem;">${timeStr}</span>
+            </div>
+            <div style="color:#e2e8f0;">Caller: ${c.caller_name || `${c.caller_lat.toFixed(3)}, ${c.caller_lon.toFixed(3)}`}</div>
+            <div style="display:flex;justify-content:space-between;color:#94a3b8;font-size:0.75rem;margin-top:4px;">
+              <span>Distance: <b>${c.distance_m} m</b></span>
+              <span>Operator: <b>${c.agent_username}</b></span>
+            </div>`;
+          list.appendChild(card);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function clearResults() {
+      document.getElementById('result-box').classList.remove('visible');
+      removeLineLayer('route-src', 'route-line');
+      removeLineLayer('walk-src', 'walk-line');
+    }
+
+    function resetForm() {
+      clearResults();
+      if (callerMarker) { callerMarker.remove(); callerMarker = null; }
+      if (destMarker) { destMarker.remove(); destMarker = null; }
+      document.getElementById('input-caller-coords').value = '';
+      document.getElementById('input-dest-coords').value = '';
+      document.getElementById('select-caller').value = '';
+      document.getElementById('select-dest').value = '';
+      map.flyTo({ center: [38.475, 7.06], zoom: 13 });
+    }
+
+    // Startup
+    loadInitialData();
+  </script>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="modal-backdrop" id="shortcuts-modal">
+    <div class="modal-box" style="width: 380px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <h3 style="font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
+          Dispatch Keyboard Shortcuts
+        </h3>
+        <button class="btn-small" style="padding: 2px 8px; cursor: pointer;" onclick="toggleShortcutsModal(false)">Close</button>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+        Designed for high-speed dispatch operators to navigate without lifting hands from keyboard:
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>Quick Search Places</span>
+          <span class="kbd-shortcut">/ or Ctrl+K</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>Nearest Station Mode</span>
+          <span class="kbd-shortcut">Alt+N</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>Full Route Mode</span>
+          <span class="kbd-shortcut">Alt+R</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>AI Assistant Mode</span>
+          <span class="kbd-shortcut">Alt+A</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>Add New Taxi Station</span>
+          <span class="kbd-shortcut">Alt+S</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+          <span>Clear Route & Selection</span>
+          <span class="kbd-shortcut">Alt+C</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2px;">
+          <span>Close Modals / Crosshairs</span>
+          <span class="kbd-shortcut">Esc</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

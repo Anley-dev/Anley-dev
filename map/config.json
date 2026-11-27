@@ -1,0 +1,29 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "fonts": "/usr/src/app/node_modules/tileserver-gl-styles/fonts",
+      "styles": "/data",
+      "mbtiles": "/data"
+    }
+  },
+  "styles": {
+    "hawassa": {
+      "style": "style.json",
+      "tilejson": {
+        "type": "baselayer",
+        "bounds": [
+          38.4,
+          7.0,
+          38.55,
+          7.12
+        ]
+      }
+    }
+  },
+  "data": {
+    "v3": {
+      "mbtiles": "hawassa.mbtiles"
+    }
+  }
+}

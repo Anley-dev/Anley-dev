@@ -1,0 +1,57 @@
+services:
+  # 1. Offline Routing Engine (Valhalla)
+  valhalla:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    container_name: hawassa-valhalla
+    restart: always
+    environment:
+      - build_elevation=False
+      - build_admins=False
+      - build_time_zones=False
+    volumes:
+      - ./routing:/custom_files
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # 2. Offline Vector & Raster Tile Server
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    container_name: hawassa-tileserver
+    restart: always
+    volumes:
+      - ./map:/data
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # 3. Call Center Web App & API
+  web:
+    build: .
+    container_name: hawassa-web
+    restart: always
+    depends_on:
+      valhalla:
+        condition: service_healthy
+      tileserver:
+        condition: service_started
+    environment:
+      - VALHALLA_URL=http://valhalla:8002
+    volumes:
+      - ./hawassa_places.db:/app/hawassa_places.db
+      - ./static:/app/static
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
