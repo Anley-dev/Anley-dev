@@ -43,3 +43,4 @@ backups/*.gz
 # Logs
 *.log
 /tmp/
+data/ethiopia-latest.osm.pbf
